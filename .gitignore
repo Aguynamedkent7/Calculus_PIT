@@ -1,0 +1,7 @@
+.venv
+.pytest_cache
+.vscode
+/formula/__pycache__
+/formula/.pytest_cache
+/tests/__pycache__
+/tests/.pytest_cache

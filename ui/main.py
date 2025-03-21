@@ -17,7 +17,7 @@ def compute_derivative():
         x = sp.symbols('x')
         expr = sp.sympify(expr_text)
         derivative = sp.diff(expr, x, order)
-        result = re.sub(r'(\d+)\*(x)', r'\1\2', str(derivative))  # 4*x → 4x
+        result = str(derivative).replace("*", "")
         result_label.configure(text=f"Result: {result}")
 
     except Exception as e:

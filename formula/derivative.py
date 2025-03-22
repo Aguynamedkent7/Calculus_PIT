@@ -3,7 +3,11 @@ import numpy as np
 
 
 def main():
-    pass
+    symbol = smp.symbols('x')
+    expr = "cbrt(8)"
+    fn = smp.parse_expr(expr, {'x': symbol})
+    f_prime = smp.diff(fn, symbol)
+    print(fn)
 
 
 def derivative_of_range(user_input, symbol_wrt, a, b, order=1):

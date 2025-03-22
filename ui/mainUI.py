@@ -1,6 +1,11 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import customtkinter as ctk
-import sympy as sp
+import sympy as smp
 import pyperclip
+from formula.derivative import derivative
 
 # Initialize main window
 ctk.set_appearance_mode("dark")
@@ -11,17 +16,16 @@ root.geometry("500x500")
 
 # Function to compute derivatives
 def compute_derivative():
-    expr_text = entry.get().replace(" ", "").replace("x", "*x").replace("(*x", "(x").replace("^", "**")
+    expr_text = entry.get()
     order = int(order_entry.get()) if order_entry.get().isdigit() else 1
     try:
-        x = sp.symbols('x')
-        expr = sp.sympify(expr_text)
-        derivative = sp.diff(expr, x, order)
-        result = str(derivative).replace("*", "")
+        x = smp.symbols('x')
+        result = str(derivative(expr_text, x, order))
         result_label.configure(text=f"Result: {result}")
 
     except Exception as e:
-        result_label.configure(text=f"Error: {e}")
+        print(e)
+        result_label.configure(text=f"Error")
 
 
 # Function to copy result to clipboard
@@ -36,11 +40,8 @@ def save_to_file():
 # Function to insert text into entry field
 def insert_text(text):
     replacements = {
-        "sin(x)": "sp.sin(x)",
-        "cos(x)": "sp.cos(x)",
-        "tan(x)": "sp.tan(x)",
-        "π": "sp.pi",
-        "log(x)": "sp.log(x)"
+        "^": "**",
+        "π": "pi",
     }
     text = replacements.get(text, text)  # Replace if in dictionary
     entry.insert(entry.index(ctk.INSERT), text)
@@ -80,8 +81,9 @@ for row in keypad:
 # Special function buttons
 special_buttons = [
     ["sin(x)", "cos(x)", "tan(x)", "π"],
-    ["√(", "^", "|x|", "log(x)"],
-    ["(", ")", ",", "ans"]
+    ["sqrt(", "cbrt(", "^", "|x|",],
+    ["(", ")", ",", "ans"],
+    ["log(x)"]
 ]
 
 for row in special_buttons:
@@ -103,7 +105,5 @@ copy_button.pack(side=ctk.LEFT, padx=5)
 
 save_button = ctk.CTkButton(control_frame, text="Save", command=save_to_file)
 save_button.pack(side=ctk.LEFT, padx=5)
-
-
 
 root.mainloop()

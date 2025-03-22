@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 from formula.derivative import derivative_of_range, derivative
 
 NORMAL_FN = "x**2 + 6*x + 9"
-MULTIPLICATION_FN = "x**2 * 6*x * 9"
+MULTIPLICATION_FN = "(1+sqrt(x**3)) * (x**-3 - 2*cbrt(x))"
 DIV_FN = "(3x**3 + 10*x**2) / 6*x"
 CHAIN_RULE_FN = "2*x*(3*x**2)**2"
 SYMBOL_WRT = smp.symbols('x', real=True)
@@ -17,6 +17,12 @@ SYMBOL_WRT = smp.symbols('x', real=True)
 def test_derivative():
     # test for normal function
     result = derivative(NORMAL_FN, SYMBOL_WRT, 1)
+    expected = "2*x + 6"  # Replace with the actual expected result
+    assert str(result) == expected, f"Expected {expected}, got {result}"
+
+def test_mult_rule():
+    # test for normal function
+    result = derivative(MULTIPLICATION_FN, SYMBOL_WRT, 1)
     expected = "2*x + 6"  # Replace with the actual expected result
     assert str(result) == expected, f"Expected {expected}, got {result}"
 

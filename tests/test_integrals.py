@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import sympy as smp
 import numpy as np
 from numpy.testing import assert_almost_equal
-from formula.integral import b_integral, ub_integral, ub_integral_of_range
+from formula.integral import b_integral, ub_integral, ub_integral_of_range, b_integral_of_range
 
 NORMAL_FN = "x**2 + 6*x + 9"
 SYMBOL_WRT = smp.symbols('x', real=True)

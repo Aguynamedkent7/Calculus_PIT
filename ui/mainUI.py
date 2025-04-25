@@ -11,6 +11,7 @@ from formula import derivative, integral
 from matplotlib.widgets import Slider
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 
 class DerivativeIntegralSolverApp(ctk.CTk):
@@ -110,17 +111,25 @@ class DerivativeIntegralSolverApp(ctk.CTk):
     def compute_derivative_and_integral(self):
         expr_text = self.entry.get()
         self.order = int(self.order_entry.get()) if self.order_entry.get().isdigit() else 1
+        text = ""
         try:
             x = smp.symbols('x')
-            result_derivative = str(derivative.derivative(expr_text, x, self.order))
-            result_integral = str(integral.ub_integral(expr_text, x))
+            result_derivative = str(derivative.symbolic_derivative(expr_text, x, self.order))
+            #result_integral = str(integral.ub_integral(expr_text, x))
+            text += f"Derivative: {result_derivative}\n"
             self.result_label.configure(
-                text=f"Derivative: {result_derivative}\nIntegral: {result_integral}")
-            self.plot_graph()
+                text=text) #Integral: {result_integral}
 
         except Exception as e:
             print(e)
             self.result_label.configure(text=f"Error")
+
+        try:
+            self.plot_graph()
+        except Exception as e:
+            text += "Failed to plot graph"
+            self.result_label.configure(text=text)
+            print(e)
 
     def clear_text(self):
         self.entry.delete(0, ctk.END)  
@@ -152,64 +161,76 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         if hasattr(self, "toolbar"):
             self.toolbar.destroy()
 
-        self.symbol = smp.symbols('x', real=True)
-        a, b = 1, 10
-
+        # if there is input
         if len(res := self.entry.get().strip()) != 0:
+            self.symbol = smp.symbols('x', real=True)
+            self.a, self.b = 1, 100
             self.expr = res
+
+            og_fn = smp.parse_expr(self.expr, {"x": self.symbol})
+            self.order = int(self.order_entry.get()) if self.order_entry.get().isdigit() else 1
+            self.x = np.linspace(self.a, self.b, 100)
+            self.lambdas = {
+                "original": smp.lambdify(self.symbol, og_fn, modules=['numpy']),
+                "derivative": derivative.numeric_derivative(self.expr, self.symbol, self.a, self.b, self.order),
+                
+            } # "integral": integral.scipy_integral_func(self.expr, self.symbol, a, b)
+
+            # Create figure and axes directly
+            self.fig = Figure(figsize=(5, 4), dpi=100)
+            self.ax = self.fig.add_subplot(111)
+            self.line1, = self.ax.plot(self.x, self.lambdas['derivative'], label='Derivative', color='blue')
+            #self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.x), label='Integral', color='green')
+            self.line3, = self.ax.plot(self.x, self.lambdas['original'](self.x), label='Original', color='black')
+            self.ax.set_title(f'Derivative and Integral of the function {self.expr}')
+            self.ax.set_xlabel('x')
+            self.ax.set_ylabel('f(x)')
+            self.ax.legend()
+            self.ax.grid()
+
+            self.graph_canvas = FigureCanvasTkAgg(self.fig, master=self.graph_frame)
+            self.graph_canvas.draw()
+    
+            self.toolbar = NavigationToolbar2Tk(self.graph_canvas, self, pack_toolbar=False)
+            self.toolbar.update() 
+            self.toolbar.pack(side=ctk.BOTTOM, fill=ctk.BOTH)   
+
+            axfreq = self.fig.add_axes([0.25, 0.01, 0.65, 0.03])
+            self.slider = Slider(
+                ax=axfreq,
+                label='Range of x',
+                valmin=self.a,
+                valmax=self.b,
+                valinit=self.a,
+                valstep=1,
+            )
+            self.slider.on_changed(self.slider_update)
         else:
-            self.expr = "x**2"
+            # if no input, create a blank graph
+            self.fig = Figure(figsize=(5, 4), dpi=100)
+            self.ax = self.fig.add_subplot(111)
+            self.ax.set_title(f'Derivative and Integral of the function')
+            self.ax.set_xlabel('x')
+            self.ax.set_ylabel('f(x)')
+            self.ax.grid()
 
-        og_fn = smp.parse_expr(self.expr, {"x": self.symbol})
-        self.order = int(self.order_entry.get()) if self.order_entry.get().isdigit() else 1
-        self.x = np.linspace(a, b, 100)
-        self.lambdas = {
-            "original": smp.lambdify(self.symbol, og_fn, modules=['numpy']),
-            "derivative": derivative.scipy_derivative_func(self.expr, self.symbol, a, b, self.order),
-            "integral": integral.scipy_integral_func(self.expr, self.symbol, a, b)
-        }
-
-        # Create figure and axes directly
-        self.fig = Figure(figsize=(5, 4), dpi=100)
-        self.ax = self.fig.add_subplot(111)
-        self.line1, = self.ax.plot(self.x, self.lambdas['derivative'](self.x), label='Derivative', color='blue')
-        self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.x), label='Integral', color='green')
-        self.line3, = self.ax.plot(self.x, self.lambdas['original'](self.x), label='Original', color='black')
-        self.ax.set_title(f'Derivative and Integral of the function {self.expr}')
-        self.ax.set_xlabel('x')
-        self.ax.set_ylabel('f(x)')
-        self.ax.legend()
-        self.ax.grid()
-
-        self.graph_canvas = FigureCanvasTkAgg(self.fig, master=self.graph_frame)
-        self.graph_canvas.draw()
-
-  
-        self.toolbar = NavigationToolbar2Tk(self.graph_canvas, self, pack_toolbar=False)
-        self.toolbar.update() 
-        self.toolbar.pack(side=ctk.BOTTOM, fill=ctk.BOTH)   
-
-        axfreq = self.fig.add_axes([0.25, 0.01, 0.65, 0.03])
-        self.slider = Slider(
-            ax=axfreq,
-            label='Range of x',
-            valmin=1,
-            valmax=30,
-            valinit=15,
-            valstep=1,
-        )
-        self.slider.on_changed(self.slider_update)
+            self.graph_canvas = FigureCanvasTkAgg(self.fig, master=self.graph_frame)
+            self.graph_canvas.draw()
+    
+            self.toolbar = NavigationToolbar2Tk(self.graph_canvas, self, pack_toolbar=False)
+            self.toolbar.update() 
+            self.toolbar.pack(side=ctk.BOTTOM, fill=ctk.BOTH)   
 
         self.graph_canvas.get_tk_widget().pack(fill="both", expand=True, pady=10)
 
 
     def slider_update(self, val):
-            new_range = self.slider.val
-            x_new = np.linspace(1, new_range, 100)
+            self.b = self.slider.val
+            x_new = np.linspace(1, self.b, 100)
             self.line1.set_xdata(x_new)
-            self.line1.set_ydata(self.lambdas['derivative'](x_new))
-            self.line2.set_xdata(x_new)
-            self.line2.set_ydata(self.lambdas['integral'](x_new))
+            self.line1.set_ydata(self.lambdas['derivative'])
+            #self.line2.set_xdata(x_new)
+            #self.line2.set_ydata(self.lambdas['integral'](x_new))
             self.line3.set_xdata(x_new)
             self.line3.set_ydata(self.lambdas['original'](x_new))
             self.ax.relim()

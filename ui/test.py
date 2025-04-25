@@ -5,14 +5,16 @@ from scipy.differentiate import derivative
 
 # Define the function
 def f(x):
-    fn = smp.parse_expr("x**2 + 3/ x**3 - 1")
+    fn = smp.parse_expr("x**2")
+    print(fn)
     return smp.lambdify(smp.symbols('x'), fn, modules=['numpy'])(x)
 
 # Define the range of x values
-x = np.linspace(-50, 50, 100)
+x = np.linspace(1, 5, 5)
 
 # Compute the derivative using scipy.differentiate.derivative
 dy_dx = derivative(f, x)
+print(np.array(dy_dx.df))
 # Plot the original function
 plt.plot(x, f(x), label="f(x)", color="blue")
 

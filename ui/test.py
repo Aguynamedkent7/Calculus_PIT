@@ -1,61 +1,28 @@
-import customtkinter as ctk
-
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.differentiate import derivative
 
-# Implement the default Matplotlib key bindings.
-from matplotlib.backend_bases import key_press_handler
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
-                                               NavigationToolbar2Tk)
-from matplotlib.figure import Figure
+# Define the function
+def f(x):
+    return x**3 - 3*x**2 + 2*x
 
-root = ctk.CTk()
-root.wm_title("Embedded in Tk")
+# Define the range of x values
+x = np.linspace(-1, 3, 100)
 
-fig = Figure(figsize=(5, 4), dpi=100)
-t = np.arange(0, 3, .01)
-ax = fig.add_subplot()
-line, = ax.plot(t, 2 * np.sin(2 * np.pi * t))
-ax.set_xlabel("time [s]")
-ax.set_ylabel("f(t)")
+# Compute the derivative using scipy.differentiate.derivative
+dy_dx = derivative(f, x)
+# Plot the original function
+plt.plot(x, f(x), label="f(x)", color="blue")
 
-canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
-canvas.draw()
+# Plot the derivative
+plt.plot(x, dy_dx.df, label="f'(x)", color="red", linestyle="--")
 
-# pack_toolbar=False will make it easier to use a layout manager later on.
-toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
-toolbar.update()
+# Add labels, legend, and grid
+plt.title("Function and its Derivative")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.grid()
 
-canvas.mpl_connect(
-    "key_press_event", lambda event: print(f"you pressed {event.key}"))
-canvas.mpl_connect("key_press_event", key_press_handler)
-
-button_quit = ctk.CTkButton(master=root, text="Quit", command=root.destroy)
-
-frame = ctk.CTkFrame(master=root)
-frame.pack(side=ctk.LEFT, fill=ctk.BOTH)
-
-def update_frequency(new_val):
-    # retrieve frequency
-    f = float(new_val)
-
-    # update data
-    y = 2 * np.sin(2 * np.pi * f * t)
-    line.set_data(t, y)
-
-    # required to update canvas and attached toolbar!
-    canvas.draw()
-
-
-slider_update = ctk.CTkSlider(root, from_=1, to=5,
-                              command=update_frequency)
-
-# Packing order is important. Widgets are processed sequentially and if there
-# is no space left, because the window is too small, they are not displayed.
-# The canvas is rather flexible in its size, so we pack it last which makes
-# sure the UI controls are displayed as long as possible.
-button_quit.pack(side=ctk.BOTTOM)
-slider_update.pack(side=ctk.BOTTOM)
-toolbar.pack(side=ctk.BOTTOM, fill=ctk.X)
-canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=True)
-
-root.mainloop()
+# Show the plot
+plt.show()

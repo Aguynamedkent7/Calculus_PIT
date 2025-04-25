@@ -165,8 +165,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.x = np.linspace(a, b, 100)
         self.lambdas = {
             "original": smp.lambdify(self.symbol, og_fn, modules=['numpy']),
-            "derivative": derivative.derivative_of_range(self.expr, self.symbol, a, b, self.order),
-            "integral": integral.ub_integral_of_range(self.expr, self.symbol, a, b)
+            "derivative": derivative.scipy_derivative_func(self.expr, self.symbol, a, b, self.order),
+            "integral": integral.scipy_integral_func(self.expr, self.symbol, a, b)
         }
 
         # Create figure and axes directly

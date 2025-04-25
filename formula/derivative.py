@@ -2,6 +2,7 @@ import sympy as smp
 import numpy as np
 
 
+
 def main():
     symbol = smp.symbols('x')
     # Test cases for constants
@@ -34,6 +35,33 @@ def derivative(user_input, symbol_wrt, order=1):
     except Exception as e:
         print(f"Error in derivative: {e}")
         return None
+
+
+def scipy_derivative_func(expr, symbol, order=1):
+    """
+    Returns a function that numerically computes the nth derivative of expr using finite differences.
+    """
+    fn = smp.parse_expr(expr, {f'{symbol}': symbol})
+    lambda_f = smp.lambdify(symbol, fn, modules=["numpy"])
+
+    def nth_derivative(x_vals):
+        x_vals = np.atleast_1d(x_vals)
+        h = 1e-5  # small step size for finite difference
+        x_vals = np.asarray(x_vals)
+        result = np.zeros_like(x_vals, dtype=float)
+
+        for i, x in enumerate(x_vals):
+            try:
+                val = lambda_f
+                for _ in range(order):
+                    # Apply central difference for derivative
+                    val = (lambda x: (val(x + h) - val(x - h)) / (2 * h))
+                result[i] = val(x)
+            except:
+                result[i] = np.nan
+        return result
+
+    return nth_derivative
 
 
 def derivative_of_range(user_input, symbol_wrt, a, b, order=1):

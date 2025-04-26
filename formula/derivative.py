@@ -5,7 +5,9 @@ from scipy.differentiate import derivative
 
 def main():
     symbol = smp.symbols('x')
-    print(numeric_derivative("x**2 + 6*x + 9", symbol, 1, 10, order=1))
+    res = symbolic_derivative("1", symbol)
+    expr = "7"
+    print(numeric_derivative(expr, symbol, 0, 10))
 
 
 def symbolic_derivative(user_input, symbol_wrt, order=1):

@@ -115,10 +115,10 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         try:
             x = smp.symbols('x')
             result_derivative = str(derivative.symbolic_derivative(expr_text, x, self.order))
-            #result_integral = str(integral.ub_integral(expr_text, x))
-            text += f"Derivative: {result_derivative}\n"
+            result_integral = str(integral.ub_integral(expr_text, x))
+            text += f"Derivative: {result_derivative}\nIntegral: {result_integral}\n"
             self.result_label.configure(
-                text=text) #Integral: {result_integral}
+                text=text) #
 
         except Exception as e:
             print(e)
@@ -129,7 +129,7 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         except Exception as e:
             text += "Failed to plot graph"
             self.result_label.configure(text=text)
-            print(e)
+            print("Failed to plot graph. Might be due to taking the derivative of a constant.")
 
     def clear_text(self):
         self.entry.delete(0, ctk.END)  
@@ -173,14 +173,14 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.lambdas = {
                 "original": smp.lambdify(self.symbol, og_fn, modules=['numpy']),
                 "derivative": derivative.numeric_derivative(self.expr, self.symbol, self.a, self.b, self.order),
-                
-            } # "integral": integral.scipy_integral_func(self.expr, self.symbol, a, b)
+                "integral": integral.ub_integral_of_range(self.expr, self.symbol, self.a, self.b)
+            } # 
 
             # Create figure and axes directly
             self.fig = Figure(figsize=(5, 4), dpi=100)
             self.ax = self.fig.add_subplot(111)
             self.line1, = self.ax.plot(self.x, self.lambdas['derivative'], label='Derivative', color='blue')
-            #self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.x), label='Integral', color='green')
+            self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.x), label='Integral', color='green')
             self.line3, = self.ax.plot(self.x, self.lambdas['original'](self.x), label='Original', color='black')
             self.ax.set_title(f'Derivative and Integral of the function {self.expr}')
             self.ax.set_xlabel('x')
@@ -217,7 +217,7 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.graph_canvas = FigureCanvasTkAgg(self.fig, master=self.graph_frame)
             self.graph_canvas.draw()
     
-            self.toolbar = NavigationToolbar2Tk(self.graph_canvas, self, pack_toolbar=False)
+            self.toolbar = NavigationToolbar2Tk(self.graph_canvas, self,)
             self.toolbar.update() 
             self.toolbar.pack(side=ctk.BOTTOM, fill=ctk.BOTH)   
 
@@ -229,8 +229,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             x_new = np.linspace(1, self.b, 100)
             self.line1.set_xdata(x_new)
             self.line1.set_ydata(self.lambdas['derivative'])
-            #self.line2.set_xdata(x_new)
-            #self.line2.set_ydata(self.lambdas['integral'](x_new))
+            self.line2.set_xdata(x_new)
+            self.line2.set_ydata(self.lambdas['integral'](x_new))
             self.line3.set_xdata(x_new)
             self.line3.set_ydata(self.lambdas['original'](x_new))
             self.ax.relim()

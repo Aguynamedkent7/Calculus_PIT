@@ -3,6 +3,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
+
+def main():
+    symbol = smp.symbols('x')
+    test_cases = [
+        "0",
+        "pi",
+        "2*pi",
+        "x",
+        "x^2",
+        "1/x",
+        "sin(x)"
+    ]
+
+    print("Testing integrals:")
+    # for expr in test_cases:
+    #     fixed_expr = expr.replace("^", "**")
+    #     ub_result = ub_integral(fixed_expr, symbol)
+    #     b_result = b_integral(fixed_expr, symbol, 0, 1)
+    #     print(f"∫({expr}) dx = {ub_result}")
+    #     print(f"∫₀¹({expr}) dx = {b_result}")
+    #     print("-" * 40)
+
+    res = quad(lambda x: x, -np.inf, np.inf)
+    print(res)
+
+
 def b_integral(user_input, symbol_wrt, lower_bound, upper_bound):
     """Bounded integral with symbolic evaluation"""
     try:
@@ -51,12 +77,12 @@ def careful_lambdify(symbol, expr):
         try:
             result = lambda_f(x)
             if isinstance(result, np.ndarray):
-                result[~np.isfinite(result)] = np.nan
+                result[~np.isfinite(result)] = np.linspace(np.nan, np.nan, 100)
             elif not np.isfinite(result):
-                return np.nan
+                return np.linspace(np.nan, np.nan, 100)
             return result
         except:
-            return np.nan
+            return np.linspace(np.nan, np.nan, 100)
     return np.vectorize(safe_function)
 
 
@@ -78,28 +104,6 @@ def scipy_integral_func(expr, symbol, a):
 
     return integral_up_to_x
 
-
-
-def main():
-    symbol = smp.symbols('x')
-    test_cases = [
-        "0",
-        "pi",
-        "2*pi",
-        "x",
-        "x^2",
-        "1/x",
-        "sin(x)"
-    ]
-
-    print("Testing integrals:")
-    for expr in test_cases:
-        fixed_expr = expr.replace("^", "**")
-        ub_result = ub_integral(fixed_expr, symbol)
-        b_result = b_integral(fixed_expr, symbol, 0, 1)
-        print(f"∫({expr}) dx = {ub_result}")
-        print(f"∫₀¹({expr}) dx = {b_result}")
-        print("-" * 40)
         
 
 if __name__ == '__main__':

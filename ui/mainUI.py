@@ -44,6 +44,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.graph_frame = ctk.CTkFrame(self.main_frame, width=500, height=500)
         self.graph_frame.pack(side=ctk.LEFT, padx=10, pady=10, fill=ctk.BOTH, expand=True)
 
+        
+
         # UI Elements
         self.header_label = ctk.CTkLabel(self.calculator_frame, text="Derivative/Integral Calculator", font=("Arial", 20))
         self.header_label.pack(pady=20)
@@ -53,6 +55,11 @@ class DerivativeIntegralSolverApp(ctk.CTk):
 
         self.order_entry = ctk.CTkEntry(self.calculator_frame, placeholder_text="Order of derivative (for derivatives; optional)", width=300)
         self.order_entry.pack(pady=10, anchor="center")
+        
+        self.active_entry = self.entry  # Default
+
+        self.entry.bind("<FocusIn>", lambda e: self.set_active_entry(self.entry))
+        self.order_entry.bind("<FocusIn>", lambda e: self.set_active_entry(self.order_entry))
 
         # Result label
         self.result_label = ctk.CTkLabel(self.calculator_frame, text="")
@@ -131,6 +138,9 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.result_label.configure(text=text)
             print("Failed to plot graph. Might be due to taking the derivative of a constant.")
 
+    def set_active_entry(self, widget):
+        self.active_entry = widget
+
     def clear_text(self):
         self.entry.delete(0, ctk.END)  
         self.order_entry.delete(0, ctk.END) 
@@ -151,8 +161,9 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             "π": "pi",
         }
         text = replacements.get(text, text)  # Replace if in dictionary
-        self.entry.insert(self.entry.index(ctk.INSERT), text)
-
+       
+        self.active_entry.insert(self.active_entry.index(ctk.INSERT), text)
+        
     def plot_graph(self):
         if hasattr(self, "fig"):
             plt.close(self.fig)  # Close the matplotlib figure

@@ -62,8 +62,9 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.order_entry.bind("<FocusIn>", lambda e: self.set_active_entry(self.order_entry))
 
         # Result label
-        self.result_label = ctk.CTkLabel(self.calculator_frame, text="")
-        self.result_label.pack(pady=10)
+        self.result_label = ctk.CTkLabel(self.calculator_frame, text="", font=("Arial", 14),compound="left", text_color="lightgreen", width=500, height=30, corner_radius=10, padx=10, pady=5) 
+        self.result_label.pack(pady=10, anchor="w")
+
 
         # Buttons Frame
         self.buttons_frame = ctk.CTkFrame(self.calculator_frame, fg_color="transparent")
@@ -81,8 +82,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.row_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent")
             self.row_frame.pack(pady=5)
             for char in row:
-                self.btn = ctk.CTkButton(self.row_frame, text=char, width=100, command=lambda c=char: self.insert_text(c))
-                self.btn.pack(side=ctk.LEFT, padx=5)
+                self.btn = ctk.CTkButton(self.row_frame, text=char, width=100, command=lambda c=char: self.insert_text(c), corner_radius=20)
+                self.btn.pack(side=ctk.LEFT, padx=15)
 
         # Special function buttons
         self.special_buttons = [
@@ -95,24 +96,26 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.row_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent")
             self.row_frame.pack(pady=5)
             for func in row:
-                self.btn = ctk.CTkButton(self.row_frame, text=func, width=100, command=lambda f=func: self.insert_text(f))
-                self.btn.pack(side=ctk.LEFT, padx=5)
+                self.btn = ctk.CTkButton(self.row_frame, text=func, width=100, command=lambda f=func: self.insert_text(f), corner_radius=20)
+                self.btn.pack(side=ctk.LEFT, padx=15)
 
         # Control buttons
         self.control_frame = ctk.CTkFrame(self.calculator_frame, fg_color="transparent")
         self.control_frame.pack(pady=5, anchor="center")
 
-        self.clear_button = ctk.CTkButton(self.control_frame, text="Clear", width=100, command=self.clear_text)
-        self.clear_button.pack(side=ctk.LEFT, padx=5)
+        self.clear_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Clear", width=100, command=self.clear_text, corner_radius=20)
+        self.clear_button.pack(side=ctk.LEFT, padx=15)
 
-        self.enter_button = ctk.CTkButton(self.control_frame, text="Enter", width=100, command=self.compute_derivative_and_integral)
-        self.enter_button.pack(side=ctk.LEFT, padx=5)
+        
+        self.copy_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Copy", command=self.copy_to_clipboard,   width=100, corner_radius=20)
+        self.copy_button.pack(side=ctk.LEFT, padx=15)
 
-        self.copy_button = ctk.CTkButton(self.control_frame, text="Copy", command=self.copy_to_clipboard)
-        self.copy_button.pack(side=ctk.LEFT, padx=5)
+        self.save_button = ctk.CTkButton(self.control_frame,fg_color="green",hover_color="#66FF66", text="Save", command=self.save_to_file, width=100, corner_radius=20)
+        self.save_button.pack(side=ctk.LEFT, padx=15)
+        
+        self.enter_button = ctk.CTkButton(self.control_frame,fg_color="green",hover_color="#66FF66", text="Enter", width=100, command=self.compute_derivative_and_integral, corner_radius=20)
+        self.enter_button.pack(side=ctk.LEFT, padx=15)
 
-        self.save_button = ctk.CTkButton(self.control_frame, text="Save", command=self.save_to_file)
-        self.save_button.pack(side=ctk.LEFT, padx=5)
 
     # Function to compute derivatives
     def compute_derivative_and_integral(self):
@@ -144,6 +147,14 @@ class DerivativeIntegralSolverApp(ctk.CTk):
     def clear_text(self):
         self.entry.delete(0, ctk.END)  
         self.order_entry.delete(0, ctk.END) 
+
+    def center_window(Screen: ctk.CTk, width: int, height: int, scale_factor: float = 1.0):
+        screen_width = Screen.winfo_screenwidth()
+        screen_height = Screen.winfo_screenheight()
+        x = int(((screen_width/2) - (width/2)) * scale_factor)
+        y = int(((screen_height/2) - (height/2)) * scale_factor)
+        return f"{width}x{height}+{x}+{y}"
+
 
     # Function to copy result to clipboard
     def copy_to_clipboard(self):

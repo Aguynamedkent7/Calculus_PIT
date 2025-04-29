@@ -45,6 +45,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.graph_frame = ctk.CTkFrame(self.main_frame, width=500, height=500)
         self.graph_frame.pack(side=ctk.LEFT, padx=10, pady=10, fill=ctk.BOTH, expand=True)
 
+        
+
         # UI Elements
         self.header_label = ctk.CTkLabel(self.calculator_frame, text="Derivative/Integral Calculator", font=("Arial", 20))
         self.header_label.pack(pady=20)
@@ -54,10 +56,16 @@ class DerivativeIntegralSolverApp(ctk.CTk):
 
         self.order_entry = ctk.CTkEntry(self.calculator_frame, placeholder_text="Order of derivative (for derivatives; optional)", width=300)
         self.order_entry.pack(pady=10, anchor="center")
+        
+        self.active_entry = self.entry  # Default
+
+        self.entry.bind("<FocusIn>", lambda e: self.set_active_entry(self.entry))
+        self.order_entry.bind("<FocusIn>", lambda e: self.set_active_entry(self.order_entry))
 
         # Result label
-        self.result_label = ctk.CTkLabel(self.calculator_frame, text="")
-        self.result_label.pack(pady=10)
+        self.result_label = ctk.CTkLabel(self.calculator_frame, text="", font=("Arial", 14),compound="left", text_color="lightgreen", width=500, height=30, corner_radius=10, padx=10, pady=5) 
+        self.result_label.pack(pady=10, anchor="w")
+
 
         # Buttons Frame
         self.buttons_frame = ctk.CTkFrame(self.calculator_frame, fg_color="transparent")
@@ -75,8 +83,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.row_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent")
             self.row_frame.pack(pady=5)
             for char in row:
-                self.btn = ctk.CTkButton(self.row_frame, text=char, width=100, command=lambda c=char: self.insert_text(c))
-                self.btn.pack(side=ctk.LEFT, padx=5)
+                self.btn = ctk.CTkButton(self.row_frame, text=char, width=100, command=lambda c=char: self.insert_text(c), corner_radius=20)
+                self.btn.pack(side=ctk.LEFT, padx=15)
 
         # Special function buttons
         self.special_buttons = [
@@ -89,24 +97,24 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.row_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent")
             self.row_frame.pack(pady=5)
             for func in row:
-                self.btn = ctk.CTkButton(self.row_frame, text=func, width=100, command=lambda f=func: self.insert_text(f))
-                self.btn.pack(side=ctk.LEFT, padx=5)
+                self.btn = ctk.CTkButton(self.row_frame, text=func, width=100, command=lambda f=func: self.insert_text(f), corner_radius=20)
+                self.btn.pack(side=ctk.LEFT, padx=15)
 
         # Control buttons
         self.control_frame = ctk.CTkFrame(self.calculator_frame, fg_color="transparent")
         self.control_frame.pack(pady=5, anchor="center")
+        
+        self.clear_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Clear", width=100, command=self.clear_text, corner_radius=20)
+        self.clear_button.pack(side=ctk.LEFT, padx=15)
+        
+        self.copy_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Copy", command=self.copy_to_clipboard,   width=100, corner_radius=20)
+        self.copy_button.pack(side=ctk.LEFT, padx=15)
 
-        self.clear_button = ctk.CTkButton(self.control_frame, text="Clear", width=80, command=self.clear_text)
-        self.clear_button.pack(side=ctk.LEFT, padx=5)
-
-        self.enter_button = ctk.CTkButton(self.control_frame, text="Enter", width=80, command=self.compute_derivative_and_integral)
-        self.enter_button.pack(side=ctk.LEFT, padx=5)
-
-        self.copy_button = ctk.CTkButton(self.control_frame, text="Copy", width=80, command=self.copy_to_clipboard)
-        self.copy_button.pack(side=ctk.LEFT, padx=5)
-
-        self.save_button = ctk.CTkButton(self.control_frame, text="Save", width=80 , command=self.save_to_file)
-        self.save_button.pack(side=ctk.LEFT, padx=5)
+        self.save_button = ctk.CTkButton(self.control_frame,fg_color="green",hover_color="#66FF66", text="Save", command=self.save_to_file, width=100, corner_radius=20)
+        self.save_button.pack(side=ctk.LEFT, padx=15)
+        
+        self.enter_button = ctk.CTkButton(self.control_frame,fg_color="green",hover_color="#66FF66", text="Enter", width=100, command=self.compute_derivative_and_integral, corner_radius=20)
+        self.enter_button.pack(side=ctk.LEFT, padx=15)
 
         self.history_button = ctk.CTkButton(self.control_frame, text="History", width=80, command=self.open_history_window)
         self.history_button.pack(side=ctk.LEFT, padx=5)
@@ -138,6 +146,7 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.result_label.configure(text=text)
             print("Failed to plot graph. Might be due to taking the derivative of a constant.")
 
+
     def open_history_window(self):
         """Open the calculation history window."""
         if self.history_window is None or not self.history_window.winfo_exists():
@@ -145,14 +154,28 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         else:
             self.history_window.lift()  # Bring the window to the front
 
+            
     def update_history_window(self):
         """Update the history window if it is open."""
         if self.history_window is not None and self.history_window.winfo_exists():
             self.history_window.update_history()
 
+            
+    def set_active_entry(self, widget):
+        self.active_entry = widget
+
+
     def clear_text(self):
         self.entry.delete(0, ctk.END)  
         self.order_entry.delete(0, ctk.END) 
+
+    def center_window(Screen: ctk.CTk, width: int, height: int, scale_factor: float = 1.0):
+        screen_width = Screen.winfo_screenwidth()
+        screen_height = Screen.winfo_screenheight()
+        x = int(((screen_width/2) - (width/2)) * scale_factor)
+        y = int(((screen_height/2) - (height/2)) * scale_factor)
+        return f"{width}x{height}+{x}+{y}"
+
 
     # Function to copy result to clipboard
     def copy_to_clipboard(self):
@@ -170,8 +193,9 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             "π": "pi",
         }
         text = replacements.get(text, text)  # Replace if in dictionary
-        self.entry.insert(self.entry.index(ctk.INSERT), text)
-
+       
+        self.active_entry.insert(self.active_entry.index(ctk.INSERT), text)
+        
     def plot_graph(self):
         if hasattr(self, "fig"):
             plt.close(self.fig)  # Close the matplotlib figure

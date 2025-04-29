@@ -12,7 +12,7 @@ from matplotlib.widgets import Slider
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-
+from ui.history import CalculationHistoryWindow  # Import the history window
 
 class DerivativeIntegralSolverApp(ctk.CTk):
     def __init__(self):
@@ -25,11 +25,12 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.geometry(f"{self.win_width}x{self.win_height}")
         self.minsize(self.win_width, self.win_height)
 
+        self.history = []
+        self.history_window = None
+
         self.create_widgets()
         self.plot_graph()
-        # pack_toolbar=False will make it easier to use a layout manager later on.
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
 
     def create_widgets(self):
         # main frame
@@ -102,10 +103,9 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         # Control buttons
         self.control_frame = ctk.CTkFrame(self.calculator_frame, fg_color="transparent")
         self.control_frame.pack(pady=5, anchor="center")
-
+        
         self.clear_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Clear", width=100, command=self.clear_text, corner_radius=20)
         self.clear_button.pack(side=ctk.LEFT, padx=15)
-
         
         self.copy_button = ctk.CTkButton(self.control_frame,fg_color="#6e110a",hover_color="#FF6666", text="Copy", command=self.copy_to_clipboard,   width=100, corner_radius=20)
         self.copy_button.pack(side=ctk.LEFT, padx=15)
@@ -116,6 +116,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.enter_button = ctk.CTkButton(self.control_frame,fg_color="green",hover_color="#66FF66", text="Enter", width=100, command=self.compute_derivative_and_integral, corner_radius=20)
         self.enter_button.pack(side=ctk.LEFT, padx=15)
 
+        self.history_button = ctk.CTkButton(self.control_frame, text="History", width=80, command=self.open_history_window)
+        self.history_button.pack(side=ctk.LEFT, padx=5)
 
     # Function to compute derivatives
     def compute_derivative_and_integral(self):
@@ -127,8 +129,11 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             result_derivative = str(derivative.symbolic_derivative(expr_text, x, self.order))
             result_integral = str(integral.ub_integral(expr_text, x))
             text += f"Derivative: {result_derivative}\nIntegral: {result_integral}\n"
-            self.result_label.configure(
-                text=text) #
+            self.result_label.configure(text=text)
+
+            # Add the result to the history
+            self.history.append(f"Function: {expr_text}\n{text}")
+            self.update_history_window()
 
         except Exception as e:
             print(e)
@@ -141,8 +146,24 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.result_label.configure(text=text)
             print("Failed to plot graph. Might be due to taking the derivative of a constant.")
 
+
+    def open_history_window(self):
+        """Open the calculation history window."""
+        if self.history_window is None or not self.history_window.winfo_exists():
+            self.history_window = CalculationHistoryWindow(self, self.history)
+        else:
+            self.history_window.lift()  # Bring the window to the front
+
+            
+    def update_history_window(self):
+        """Update the history window if it is open."""
+        if self.history_window is not None and self.history_window.winfo_exists():
+            self.history_window.update_history()
+
+            
     def set_active_entry(self, widget):
         self.active_entry = widget
+
 
     def clear_text(self):
         self.entry.delete(0, ctk.END)  

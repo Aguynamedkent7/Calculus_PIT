@@ -1,33 +1,23 @@
 import numpy as np
 import sympy as smp
 import matplotlib.pyplot as plt
-from scipy.differentiate import derivative
-from scipy.integrate import quad
 
-# Define the function
-def f(x):
-    fn = smp.parse_expr("x**2")
-    print(fn)
-    return smp.lambdify(smp.symbols('x'), fn, modules=['numpy'])(x)
+symbol = smp.symbols('x')
+expr = "-log(cos(x))"
+lambda_func = smp.lambdify(symbol, expr, modules='numpy')
 
-# Define the range of x values
-x = np.linspace(1, 5, 5)
+x_vals = np.linspace(0, 10, 100)
+y_vals = lambda_func(x_vals)
 
-# Compute the derivative using scipy.differentiate.derivative
-dy_dx = quad(f, 0, 5)
-print(np.array(dy_dx))
-# Plot the original function
-plt.plot(x, f(x), label="f(x)", color="blue")
+# Handle invalid values (e.g., cos(x) <= 0)
+with np.errstate(invalid="ignore"):
+    y_vals_safe = np.where(np.cos(x_vals) > 0, y_vals, np.nan)
 
-# Plot the derivative
-plt.plot(x, dy_dx, label="f'(x)", color="red")
-
-# Add labels, legend, and grid
-plt.title("Function and its Derivative")
+# Plot the valid values
+plt.plot(x_vals, y_vals_safe, label="Function with NaN for invalid values")
 plt.xlabel("x")
 plt.ylabel("y")
+plt.title("Graph of -log(cos(x)) with NaN Handling")
 plt.legend()
 plt.grid()
-
-# Show the plot
 plt.show()

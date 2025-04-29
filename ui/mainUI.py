@@ -7,7 +7,7 @@ import sympy as smp
 import numpy as np
 import pyperclip
 import matplotlib.pyplot as plt
-from formula import derivative, integral
+from formula import derivative, integral, original_function
 from matplotlib.widgets import Slider
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -99,8 +99,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         # Special function buttons
         self.special_buttons = [
             ["sin(x)", "cos(x)", "tan(x)", "π"],
-            ["sqrt(", "cbrt(", "^", "|x|",],
-            ["(", ")", ",", "log(x)"],
+            ["sqrt(", "cbrt(", "x^2", "x^y",],
+            ["(", ")", "e^x", "log(x)"],
         ]
 
         for row in self.special_buttons:
@@ -151,7 +151,8 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         except Exception as e:
             text += "Failed to plot graph"
             self.result_label.configure(text=text)
-            print("Failed to plot graph. Might be due to taking the derivative of a constant.")
+            print("Failed to plot graph. Might be due to taking the derivative of a constant or invalid syntax.")
+            print(e)
 
             
     def update_history_window(self):
@@ -190,8 +191,10 @@ class DerivativeIntegralSolverApp(ctk.CTk):
     # Function to insert text into entry field
     def insert_text(self, text):
         replacements = {
-            "^": "**",
+            "x^2": "x**2",
+            "x^y": "x**",
             "π": "pi",
+            "e^x": "exp(x)",
         }
         text = replacements.get(text, text)  # Replace if in dictionary
        
@@ -215,17 +218,17 @@ class DerivativeIntegralSolverApp(ctk.CTk):
             self.order = int(self.order_entry.get()) if self.order_entry.get().isdigit() else 1
             self.x = np.linspace(self.a, self.b, 100)
             self.lambdas = {
-                "original": smp.lambdify(self.symbol, og_fn, modules=['numpy']),
-                "derivative": derivative.numeric_derivative(self.expr, self.symbol, self.a, self.b, self.order),
-                "integral": integral.ub_integral_of_range(self.expr, self.symbol, self.a, self.b)
-            } # 
+                "original": original_function.plot_og_func,
+                "derivative": derivative.numeric_derivative,
+                "integral": integral.ub_integral_of_range
+            } 
 
             # Create figure and axes directly
             self.fig = Figure(figsize=(5, 4), dpi=100)
             self.ax = self.fig.add_subplot(111)
-            self.line1, = self.ax.plot(self.x, self.lambdas['derivative'], label='Derivative', color='blue')
-            self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.x), label='Integral', color='green')
-            self.line3, = self.ax.plot(self.x, self.lambdas['original'](self.x), label='Original', color='black')
+            self.line1, = self.ax.plot(self.x, self.lambdas['derivative'](self.expr, self.symbol, self.a, self.b, self.order), label='Derivative', color='blue')
+            self.line2, = self.ax.plot(self.x, self.lambdas['integral'](self.expr, self.symbol, self.x), label='Integral', color='green')
+            self.line3, = self.ax.plot(self.x, self.lambdas['original'](self.expr, self.symbol, self.x), label='Original', color='black')
             self.ax.set_title(f'Derivative and Integral of the function {self.expr}')
             self.ax.set_xlabel('x')
             self.ax.set_ylabel('f(x)')
@@ -270,13 +273,13 @@ class DerivativeIntegralSolverApp(ctk.CTk):
 
     def slider_update(self, val):
             self.b = self.slider.val
-            x_new = np.linspace(1, self.b, 100)
-            self.line1.set_xdata(x_new)
-            self.line1.set_ydata(self.lambdas['derivative'])
-            self.line2.set_xdata(x_new)
-            self.line2.set_ydata(self.lambdas['integral'](x_new))
-            self.line3.set_xdata(x_new)
-            self.line3.set_ydata(self.lambdas['original'](x_new))
+            self.x = np.linspace(1, self.b, 100)
+            self.line1.set_xdata(self.x)
+            self.line1.set_ydata(self.lambdas['derivative'](self.expr, self.symbol, self.a, self.b, self.order))
+            self.line2.set_xdata(self.x)
+            self.line2.set_ydata(self.lambdas['integral'](self.expr, self.symbol, self.x))
+            self.line3.set_xdata(self.x)
+            self.line3.set_ydata(self.lambdas['original'](self.expr, self.symbol, self.x))
             self.ax.relim()
             self.ax.autoscale_view()
             self.graph_canvas.draw()

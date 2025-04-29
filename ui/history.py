@@ -23,5 +23,5 @@ class CalculationHistoryWindow(ctk.CTkToplevel):
         """Update the history text box with the latest calculations."""
         self.text_box.configure(state="normal")  # Enable editing temporarily
         self.text_box.delete("1.0", ctk.END)  # Clear the text box
-        self.text_box.insert(ctk.END, "\n".join(self.history))  # Add the history
+        self.text_box.insert("1.0", "\n".join(self.history))  # Add the history
         self.text_box.configure(state="disabled")  # Make it read-only again

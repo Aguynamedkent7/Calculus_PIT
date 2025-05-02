@@ -25,8 +25,7 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.minsize(self.win_width, self.win_height)
 
         self.history = []
-        self.history_window = None
-
+        
         self.create_widgets()
         self.plot_graph()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -44,9 +43,17 @@ class DerivativeIntegralSolverApp(ctk.CTk):
         self.history_label = ctk.CTkLabel(self.history_frame, text="History", font=("Arial", 20))
         self.history_label.pack(pady=10)
 
-        self.history_textbox = ctk.CTkTextbox(self.history_frame, width=180, height=450, state="disabled")
-        self.history_textbox.pack(pady=10, padx=10, fill=ctk.BOTH, expand=True)
+        # Create a frame for radio buttons
+        self.history_radio_frame = ctk.CTkScrollableFrame(self.history_frame, width=180, height=400)
+        self.history_radio_frame.pack(pady=10, padx=10, fill=ctk.BOTH, expand=True)
         
+        # Variable to store selected radio button
+        self.selected_history = ctk.StringVar()
+        
+        # Add Graph button at the bottom
+        self.graph_history_button = ctk.CTkButton(self.history_frame, text="Graph", command=self.graph_selected_history, width=160, corner_radius=20)
+        self.graph_history_button.pack(pady=10, padx=10)
+
         # Graph frame
         self.graph_frame = ctk.CTkFrame(self.main_frame, width=600, height=500)
         self.graph_frame.pack(side=ctk.RIGHT, padx=10, pady=10, fill=ctk.BOTH, expand=True, anchor="center")
@@ -156,13 +163,56 @@ class DerivativeIntegralSolverApp(ctk.CTk):
 
             
     def update_history_window(self):
-        """Update the embedded history text box."""
-        self.history_textbox.configure(state="normal")  # Enable editing temporarily
-        self.history_textbox.delete("1.0", ctk.END)  # Clear the text box
-        self.history_textbox.insert("1.0", "\n".join(self.history))  # Add the history
-        self.history_textbox.configure(state="disabled")  # Make it read-only again
-
+        """Update the history radio buttons."""
+        # Clear existing radio buttons
+        for widget in self.history_radio_frame.winfo_children():
+            widget.destroy()
             
+        # Add radio buttons for each history entry
+        for i, entry in enumerate(self.history):
+            # Create a frame for each radio button to hold the text
+            radio_frame = ctk.CTkFrame(self.history_radio_frame, fg_color="transparent")
+            radio_frame.pack(pady=5, padx=5, fill=ctk.X)
+            
+            # Add the radio button
+            radio = ctk.CTkRadioButton(
+                radio_frame,
+                text="",  # Empty text since we'll add labels
+                variable=self.selected_history,
+                value=str(i),
+                command=lambda: None,  # No action needed on selection
+                width=20
+            )
+            radio.pack(side=ctk.LEFT)
+            
+            # Add the function and results as labels
+            lines = entry.split('\n')
+            for line in lines:
+                label = ctk.CTkLabel(radio_frame, text=line, anchor="w")
+                label.pack(side=ctk.TOP, fill=ctk.X, padx=5)
+            
+        # Select the first entry by default if there are entries
+        if self.history:
+            self.selected_history.set("0")
+
+    def graph_selected_history(self):
+        """Graph the selected history entry."""
+        try:
+            selected_index = int(self.selected_history.get())
+            if 0 <= selected_index < len(self.history):
+                # Extract the function from the selected history entry
+                selected_entry = self.history[selected_index]
+                function = selected_entry.split('\n')[0].replace('Function: ', '')
+                
+                # Set the entry field to the selected function
+                self.entry.delete(0, ctk.END)
+                self.entry.insert(0, function)
+                
+                # Plot the graph
+                self.plot_graph()
+        except (ValueError, IndexError):
+            pass  # Handle invalid selection gracefully
+
     def set_active_entry(self, widget):
         self.active_entry = widget
 
